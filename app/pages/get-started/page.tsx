@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowRight, Wallet, Code, Zap, CheckCircle, AlertCircle } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -12,22 +14,39 @@ import { WalletConnectButton } from '@/components/ui/wallet-connect-button';
 import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toast } from '@/hooks/use-toast';
 
-// Mock function to simulate creating a blink
-const createBlink = async (type: string, amount: number, recipient: string) => {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  return {
-    id: Math.random().toString(36).substr(2, 9),
-    url: `https://blink.barkprotocol.app/create/blink/${Math.random().toString(36).substr(2, 9)}`,
-  };
-};
+// BARK BLINK SDK
+class BarkBlinkSDK {
+  constructor(private apiKey: string, private connection: Connection) {}
+
+  async createBlink(params: { type: string; amount: number; recipient: string }) {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return {
+      id: Math.random().toString(36).substr(2, 9),
+      url: `https://barkblink.com/blink/${Math.random().toString(36).substr(2, 9)}`,
+    };
+  }
+
+  async executeBlink(blinkId: string, wallet: any) {
+    // Simulate blink execution
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    return {
+      signature: `${Math.random().toString(36).substr(2, 9)}`,
+    };
+  }
+}
 
 export default function GetStartedPage() {
   const [activeStep, setActiveStep] = useState(0);
   const { connected, publicKey, signTransaction, sendTransaction } = useWallet();
   const [isCreatingBlink, setIsCreatingBlink] = useState(false);
+  const [isExecutingBlink, setIsExecutingBlink] = useState(false);
   const [balance, setBalance] = useState<number | null>(null);
+  const [blinkAmount, setBlinkAmount] = useState<string>('0.1');
+  const [createdBlinkUrl, setCreatedBlinkUrl] = useState<string | null>(null);
 
   const connection = new Connection('https://api.devnet.solana.com');
+  const barkBlinkSDK = new BarkBlinkSDK('mock-api-key', connection);
 
   const fetchBalance = useCallback(async () => {
     if (publicKey) {
@@ -54,7 +73,7 @@ export default function GetStartedPage() {
   }, [connected, publicKey, fetchBalance]);
 
   const handleCreateBlink = async () => {
-    if (!connected || !publicKey || !signTransaction) {
+    if (!connected || !publicKey) {
       toast({
         title: "Wallet Not Connected",
         description: "Please connect your Solana wallet to create a Blink.",
@@ -65,7 +84,16 @@ export default function GetStartedPage() {
 
     setIsCreatingBlink(true);
     try {
-      const newBlink = await createBlink('payment', 0.1, publicKey.toBase58());
+      const amount = parseFloat(blinkAmount);
+      if (isNaN(amount) || amount <= 0) {
+        throw new Error("Invalid amount");
+      }
+      const newBlink = await barkBlinkSDK.createBlink({
+        type: 'payment',
+        amount: amount,
+        recipient: publicKey.toBase58(),
+      });
+      setCreatedBlinkUrl(newBlink.url);
       toast({
         title: "Blink Created Successfully",
         description: `Your new Blink URL: ${newBlink.url}`,
@@ -80,6 +108,40 @@ export default function GetStartedPage() {
       });
     } finally {
       setIsCreatingBlink(false);
+    }
+  };
+
+  const handleExecuteBlink = async () => {
+    if (!connected || !publicKey || !sendTransaction) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your Solana wallet to execute a Blink.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsExecutingBlink(true);
+    try {
+      const result = await barkBlinkSDK.executeBlink('mock-blink-id', {
+        publicKey,
+        sendTransaction,
+      });
+      toast({
+        title: "Blink Executed Successfully",
+        description: `Transaction signature: ${result.signature}`,
+        variant: "default",
+      });
+      fetchBalance(); // Refresh balance after execution
+    } catch (error) {
+      console.error('Error executing Blink:', error);
+      toast({
+        title: "Error Executing Blink",
+        description: "An error occurred while executing the Blink. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExecutingBlink(false);
     }
   };
 
@@ -111,7 +173,6 @@ export default function GetStartedPage() {
         variant: "default",
       });
 
-      // Refresh balance after transaction
       fetchBalance();
     } catch (error) {
       console.error('Error sending transaction:', error);
@@ -201,26 +262,41 @@ export default function GetStartedPage() {
           <p className="text-gray-600 font-syne">Creating a Solana Blink is easy:</p>
           <ol className="list-decimal list-inside space-y-2 text-gray-600 font-syne">
             <li>Ensure your Solana wallet is connected</li>
-            <li>Choose the type of Blink (e.g., payment, NFT minting, token transfer)</li>
-            <li>Set the parameters for your Blink (recipient, amount, token, etc.)</li>
-            <li>Review and confirm your Blink details</li>
-            <li>Sign the transaction with your Solana wallet</li>
-            <li>Your unique Blink URL will be generated</li>
+            <li>Enter the amount for your Blink</li>
+            <li>Click "Create Blink" to generate your unique Blink URL</li>
+            <li>Use the "Execute Blink" button to simulate a transaction</li>
           </ol>
-          <Image
-            src="/placeholder.svg?height=200&width=400"
-            alt="Creating a Blink example"
-            width={400}
-            height={200}
-            className="rounded-lg shadow-md"
-          />
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="blinkAmount" className="font-syne">Amount (SOL):</Label>
+            <Input
+              id="blinkAmount"
+              type="number"
+              value={blinkAmount}
+              onChange={(e) => setBlinkAmount(e.target.value)}
+              className="w-24 font-syne"
+              min="0.000001"
+              step="0.000001"
+            />
+          </div>
           <Button 
             className="mt-4 bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 font-syne"
             onClick={handleCreateBlink}
             disabled={!connected || isCreatingBlink}
           >
-            {isCreatingBlink ? 'Creating Blink...' : 'Try Creating a Blink'}
+            {isCreatingBlink ? 'Creating Blink...' : 'Create Blink'}
           </Button>
+          {createdBlinkUrl && (
+            <div className="mt-4">
+              <p className="text-green-600 font-syne">Blink created: <a href={createdBlinkUrl} target="_blank" rel="noopener noreferrer" className="underline">{createdBlinkUrl}</a></p>
+              <Button
+                className="mt-2 bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 font-syne"
+                onClick={handleExecuteBlink}
+                disabled={isExecutingBlink}
+              >
+                {isExecutingBlink ? 'Executing Blink...' : 'Execute Blink'}
+              </Button>
+            </div>
+          )}
           {!connected && (
             <p className="text-red-500 font-syne">
               <AlertCircle className="inline-block mr-2" />
@@ -243,18 +319,18 @@ export default function GetStartedPage() {
             <li>Initialize the SDK with your API key and Solana connection</li>
             <li>Use the SDK methods to create and manage Solana Blinks</li>
           </ol>
-          <Card>
+          <Card className="bg-gray-100">
             <CardHeader>
               <CardTitle className="font-syne">Example Code</CardTitle>
             </CardHeader>
             <CardContent>
-              <pre className="bg-gray-100 p-4 rounded-md overflow-x-auto">
+              <pre className="bg-white p-4 rounded-md overflow-x-auto">
                 <code className="text-sm font-mono">{`
-import { BarkBlink } from '@bark-blink/sdk';
+import { BarkBlinkSDK } from '@bark-blink/sdk';
 import { Connection, PublicKey } from '@solana/web3.js';
 
 const connection = new Connection('https://api.mainnet-beta.solana.com');
-const barkBlink = new BarkBlink('YOUR_API_KEY', connection);
+const barkBlink = new BarkBlinkSDK('YOUR_API_KEY', connection);
 
 // Create a new Solana Blink
 const newBlink = await barkBlink.createBlink({
@@ -267,7 +343,7 @@ const newBlink = await barkBlink.createBlink({
 console.log(newBlink.url);
 
 // Execute a Blink action
-const result = await barkBlink.executeBlink(newBlink.id, senderWallet);
+const result = await barkBlink.executeBlink(newBlink.id, wallet);
 console.log('Transaction signature:', result.signature);
                 `}</code>
               </pre>
@@ -282,85 +358,91 @@ console.log('Transaction signature:', result.signature);
   ];
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-4xl">
-      <h1 className="text-4xl font-bold text-center text-gray-900 mb-8 font-syne">
-        Get Started with BARK BLINK
-      </h1>
-      <p className="text-xl text-gray-600 text-center mb-12 font-syne">
-        Follow these simple steps to start using BARK BLINK and revolutionize your Solana blockchain interactions.
-      </p>
-
-      <Tabs defaultValue="step-0" className="mb-12">
-        <TabsList className="grid w-full grid-cols-1 md:grid-cols-4 gap-2">
-          {steps.map((step, index) => (
-            <TabsTrigger
-              key={index}
-              value={`step-${index}`}
-              onClick={() => setActiveStep(index)}
-              className="data-[state=active]:bg-[#D0BFB4] data-[state=active]:text-gray-900 font-syne"
-            >
-              {step.icon}
-              <span className="ml-2 hidden sm:inline">{step.title}</span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-        {steps.map((step, index) => (
-          <TabsContent key={index} value={`step-${index}`}>
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-syne">{step.title}</CardTitle>
-                <CardDescription className="font-syne">{step.description}</CardDescription>
-              </CardHeader>
-              <CardContent>{step.content}</CardContent>
-            </Card>
-          </TabsContent>
-        ))}
-      </Tabs>
-
-      <div className="flex justify-between items-center mt-8">
-        <Button
-          onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
-          disabled={activeStep === 0}
-          variant="outline"
-          className="font-syne"
-        >
-          Previous
-        </Button>
-        <Button
-          onClick={() => setActiveStep(Math.min(steps.length - 1, activeStep + 1))}
-          disabled={activeStep === steps.length - 1}
-          className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 font-syne"
-        >
-          Next <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-
-      <Card className="mt-16">
-        <CardHeader>
-          <CardTitle className="font-syne text-center">Your Progress</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col space-y-2">
-            {steps.map((step, index) => (
-              <div key={index} className="flex items-center space-x-2">
-                <CheckCircle className={`w-5 h-5 ${index <= activeStep ? 'text-green-500' : 'text-gray-300'}`} />
-                <span className={`font-syne ${index <= activeStep ? 'text-gray-900' : 'text-gray-500'}`}>
-                  {step.title}
-                </span>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="mt-16 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4 font-syne">Need Help?</h2>
-        <p className="text-gray-600 mb-8 font-syne">
-          Our support team is always ready to assist you in getting started with BARK BLINK.
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="container mx-auto px-4 max-w-4xl">
+        <h1 className="text-4xl font-bold text-center text-gray-900 mb-8 font-syne">
+          Get Started with BARK BLINK
+        </h1>
+        <p className="text-xl text-gray-600 text-center mb-12 font-syne">
+          Follow these simple steps to start using BARK BLINK and revolutionize your Solana blockchain interactions.
         </p>
-        <Button asChild variant="outline" className="font-syne">
-          <Link href="/contact">Contact Support</Link>
-        </Button>
+
+        <Card className="bg-white shadow-lg">
+          <CardContent className="p-6">
+            <Tabs defaultValue="step-0" className="mb-12">
+              <TabsList className="grid w-full grid-cols-1 md:grid-cols-4 gap-2 mb-6">
+                {steps.map((step, index) => (
+                  <TabsTrigger
+                    key={index}
+                    value={`step-${index}`}
+                    onClick={() => setActiveStep(index)}
+                    className="data-[state=active]:bg-[#D0BFB4] data-[state=active]:text-gray-900 font-syne"
+                  >
+                    {step.icon}
+                    <span className="ml-2 hidden sm:inline">{step.title}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {steps.map((step, index) => (
+                <TabsContent key={index} value={`step-${index}`}>
+                  <Card className="border-0 shadow-none">
+                    <CardHeader>
+                      <CardTitle className="font-syne text-2xl">{step.title}</CardTitle>
+                      <CardDescription className="font-syne text-gray-600">{step.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>{step.content}</CardContent>
+                  </Card>
+                </TabsContent>
+              ))}
+            </Tabs>
+
+            <div className="flex justify-between items-center mt-8">
+              <Button
+                onClick={() => setActiveStep(Math.max(0, activeStep - 1))}
+                disabled={activeStep === 0}
+                variant="outline"
+                className="font-syne"
+              >
+                Previous
+              </Button>
+              <Button
+                onClick={() => setActiveStep(Math.min(steps.length - 1, activeStep + 1))}
+                disabled={activeStep === steps.length - 1}
+                className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 font-syne"
+              >
+                Next <ArrowRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mt-16 bg-white shadow-lg">
+          <CardHeader>
+            <CardTitle className="font-syne text-center">Your Progress</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col space-y-2">
+              {steps.map((step, index) => (
+                <div key={index} className="flex items-center space-x-2">
+                  <CheckCircle className={`w-5 h-5 ${index <= activeStep ? 'text-green-500' : 'text-gray-300'}`} />
+                  <span className={`font-syne ${index <= activeStep ? 'text-gray-900' : 'text-gray-500'}`}>
+                    {step.title}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="mt-16 text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4 font-syne">Need Help?</h2>
+          <p className="text-gray-600 mb-8 font-syne">
+            Our support team is always ready to assist you in getting started with BARK BLINK.
+          </p>
+          <Button asChild variant="outline" className="font-syne">
+            <Link href="/contact">Contact Support</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );
