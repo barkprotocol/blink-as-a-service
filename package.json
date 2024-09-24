@@ -1,8 +1,8 @@
 {
-  "main": "bark-blinks",
+  "main": "bark-blink-dapp",
   "description": "BARK BLINK is a powerful component of Blink BaaS (Blink As A Service) that streamlines interactions with blockchain assets, particularly within the Solana ecosystem.",
   "author": "BARK Protocol",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbo",

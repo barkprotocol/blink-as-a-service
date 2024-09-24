@@ -121,8 +121,7 @@ function Header() {
               <WalletConnectButton />
             </>
           )}
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-            <span className="sr-only">Toggle menu</span>
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)} aria-label="Toggle menu">
             <Menu className="h-6 w-6" />
           </Button>
         </div>
@@ -149,7 +148,7 @@ function About() {
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-2 font-syne">
-          About BARK Blink?
+          About BARK Blink
         </h2>
         <p className="text-lg text-gray-600 text-center mb-12 font-syne">
           Discover how BARK Blink transforms digital transactions through blockchain technology.
@@ -157,7 +156,7 @@ function About() {
         <div className="flex flex-col md:flex-row items-center justify-center md:justify-between">
           <div className="md:w-1/2 mb-8 md:mb-0 flex justify-center">
             <Image
-              src="https://ucarecdn.com/2138a07e-c7e0-4482-820e-105a49d39ede/donation_bark.png?height=400&width=400"
+              src="https://ucarecdn.com/2138a07e-c7e0-4482-820e-105a49d39ede/donation_bark.png"
               alt="About BARK BLINK"
               width={400}
               height={400}
@@ -220,6 +219,8 @@ function FAQ() {
               <button
                 className="flex justify-between items-center w-full text-left"
                 onClick={() => setOpenQuestion(openQuestion === index ? null : index)}
+                aria-expanded={openQuestion === index}
+                aria-controls={`faq-answer-${index}`}
               >
                 <span className="text-lg font-medium text-gray-900 font-syne">{faq.question}</span>
                 {openQuestion === index ? (
@@ -229,7 +230,7 @@ function FAQ() {
                 )}
               </button>
               {openQuestion === index && (
-                <p className="mt-4 text-gray-600 font-syne text-base">{faq.answer}</p>
+                <p id={`faq-answer-${index}`} className="mt-4 text-gray-600 font-syne text-base">{faq.answer}</p>
               )}
             </div>
           ))}
@@ -241,17 +242,29 @@ function FAQ() {
 
 function Newsletter() {
   const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Subscribed with email:', email);
-    setEmail('');
+    setIsSubmitting(true);
+    try {
+      // Simulating API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Subscribed with email:', email);
+      setEmail('');
+      // Show success message to user
+    } catch (error) {
+      console.error('Error subscribing:', error);
+      // Show error message to user
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <section className="py-16 bg-[#D0BFB4]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">Stay Updated</h2>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-6 font-syne">Stay Updated</h2>
         <p className="text-center text-gray-700 mb-8 font-syne">Subscribe to our newsletter for the latest updates, features, and news about BARK BLINK.</p>
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 justify-center">
           <Input
@@ -261,9 +274,10 @@ function Newsletter() {
             onChange={(e) => setEmail(e.target.value)}
             className="flex-grow font-syne"
             required
+            aria-label="Email for newsletter"
           />
-          <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white font-syne">
-            Subscribe
+          <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white font-syne" disabled={isSubmitting}>
+            {isSubmitting ? 'Subscribing...' : 'Subscribe'}
           </Button>
         </form>
       </div>
@@ -279,19 +293,19 @@ function Footer() {
           <div className="flex flex-col items-center space-y-2">
             <p className="text-sm font-medium text-gray-700 font-syne">Follow us</p>
             <div className="flex space-x-4">
-              <Link href="https://twitter.com/bark_protocol" target="_blank" rel="noopener noreferrer">
+              <Link href="https://twitter.com/bark_protocol" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
                 <Twitter className="h-5 w-5 text-gray-400 hover:text-gray-600" />
               </Link>
-              <Link href="https://t.me/bark_protocol" target="_blank" rel="noopener noreferrer">
+              <Link href="https://t.me/bark_protocol" target="_blank" rel="noopener noreferrer" aria-label="Telegram">
                 <Send className="h-5 w-5 text-gray-400 hover:text-gray-600" />
               </Link>
-              <Link href="https://discord.gg/barkprotocol" target="_blank" rel="noopener noreferrer">
+              <Link href="https://discord.gg/barkprotocol" target="_blank" rel="noopener noreferrer" aria-label="Discord">
                 <MessageCircle className="h-5 w-5 text-gray-400 hover:text-gray-600" />
               </Link>
-              <Link href="https://www.instagram.com/bark.protocol" target="_blank" rel="noopener noreferrer">
+              <Link href="https://www.instagram.com/bark.protocol" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
                 <Instagram className="h-5 w-5 text-gray-400 hover:text-gray-600" />
               </Link>
-              <Link href="https://medium.com/@barkprotocol" target="_blank" rel="noopener noreferrer">
+              <Link href="https://medium.com/@barkprotocol" target="_blank" rel="noopener noreferrer" aria-label="Medium">
                 <BookOpen className="h-5 w-5 text-gray-400 hover:text-gray-600" />
               </Link>
             </div>

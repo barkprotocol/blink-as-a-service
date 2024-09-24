@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ArrowRight, PlayCircle, PlusCircle, Cog, Shield, Send, Clock, CreditCard, Gift, Users, ShoppingCart, Speaker, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
@@ -45,11 +46,17 @@ const ProcessStep = ({ icon: Icon, title, description }: { icon: React.ElementTy
   </div>
 );
 
-const ActionButton = ({ href, children, isOutline }: { href: string; children: React.ReactNode; isOutline?: boolean; }) => (
+const ActionButton = ({ href, children, icon: Icon, variant = 'primary' }: { href: string; children: React.ReactNode; icon: React.ElementType; variant?: 'primary' | 'secondary' }) => (
   <Link href={href}>
-    <Button className={`rounded-full px-8 py-3 text-lg font-syne w-full sm:w-auto transition-all duration-300 ${isOutline ? 'bg-white hover:bg-gray-100 text-gray-800' : 'bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800'}`}>
+    <Button 
+      className={`rounded-md px-8 py-3 text-lg font-syne w-full sm:w-auto transition-all duration-300 border-2 ${
+        variant === 'primary' 
+          ? 'bg-gray-900 text-white hover:bg-gray-800 border-gray-900' 
+          : 'bg-[#D0BFB4] text-gray-900 hover:bg-[#C0AFA4] border-[#D0BFB4]'
+      }`}
+    >
       {children}
-      {isOutline ? <PlayCircle className="ml-2 h-5 w-5" aria-hidden="true" /> : <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />}
+      <Icon className="ml-2 h-5 w-5" aria-hidden="true" />
     </Button>
   </Link>
 );
@@ -99,18 +106,21 @@ export default function HomePage() {
       <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="flex flex-col items-center space-y-4 text-center">
+            <Badge variant="secondary" className="mb-4">
+              BARK Protocol
+            </Badge>
             <h1 className="text-4xl font-bold tracking-tighter text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-syne">
-              BARK Blink As A Service
-              <span className="block text-[#D0BFB4] mt-2">Streamline Your Blockchain Interactions</span>
+              Blink As A Service
+              <span className="block text-[#D0BFB4] mt-2">Revolutionizing Blockchain Interactions</span>
             </h1>
             <p className="mx-auto max-w-[700px] text-gray-600 text-lg sm:text-xl md:text-2xl mt-6 font-syne">
-              Empower your applications with seamless blockchain integration. BARK Blink offers a powerful suite of tools for efficient and secure blockchain transactions.
+             BARK BLINK is a cutting-edge blockchain platform that transforms the way you handle digital transactions. We empower businesses and individuals with lightning-fast, secure, and cost-effective blockchain solutions.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <ActionButton href="/pages/get-started">
+            <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+              <ActionButton href="/pages/get-started" icon={ArrowRight}>
                 Get Started
               </ActionButton>
-              <ActionButton href="/pages/demo" isOutline>
+              <ActionButton href="/pages/demo/" icon={PlayCircle} variant="secondary">
                 Watch Demo
               </ActionButton>
             </div>
@@ -119,7 +129,7 @@ export default function HomePage() {
       </section>
 
       {/* Description Section */}
-      <section className="w-full py-12 md:py-20 lg:py-32 bg-gray-100">
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-8 font-syne">
             What is Solana Blink?
