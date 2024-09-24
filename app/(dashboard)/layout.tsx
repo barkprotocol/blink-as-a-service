@@ -74,14 +74,14 @@ function Header() {
           <BlinkingLogo />
         </Link>
         <nav className="hidden md:flex items-center space-x-6">
-          <Link href="/features" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
-            Features
+          <Link href="/pages/services/" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
+            Services
           </Link>
-          <Link href="/pricing" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
-            Pricing
+          <Link href="/pages/nft/" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
+            NFT
           </Link>
-          <Link href="/docs" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
-            Docs
+          <Link href="/pages/donations/" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
+            Donations
           </Link>
         </nav>
         <div className="flex items-center space-x-4">
