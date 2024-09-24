@@ -115,7 +115,7 @@ function Header() {
               <Button asChild variant="ghost" className="hidden md:inline-flex font-syne">
                 <Link href="/sign-in">Sign In</Link>
               </Button>
-              <Button asChild className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 text-sm px-4 py-2 rounded-full font-syne">
+              <Button asChild className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 text-sm px-4 py-2 rounded-md font-syne">
                 <Link href="/sign-up">Sign Up</Link>
               </Button>
               <WalletConnectButton />

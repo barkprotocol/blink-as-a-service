@@ -117,7 +117,7 @@ export default function HomePage() {
              BARK BLINK is a cutting-edge blockchain platform that transforms the way you handle digital transactions. We empower businesses and individuals with lightning-fast, secure, and cost-effective blockchain solutions.
             </p>
             <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
-              <ActionButton href="/pages/get-started" icon={ArrowRight}>
+              <ActionButton href="/pages/services/get-started" icon={ArrowRight}>
                 Get Started
               </ActionButton>
               <ActionButton href="/pages/demo/" icon={PlayCircle} variant="secondary">
@@ -129,12 +129,12 @@ export default function HomePage() {
       </section>
 
       {/* Description Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-900">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-8 font-syne">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-100 mb-8 font-syne">
             What is Solana Blink?
           </h2>
-          <p className="text-lg text-gray-700 text-center mb-4 font-syne">
+          <p className="text-lg text-gray-400 text-center mb-4 font-poppins">
             Solana Blink revolutionizes blockchain interactions by allowing users to engage seamlessly through simple URLs. Whether on social media or Discord, it opens up new opportunities for developers and enhances user experience across the Solana ecosystem.
           </p>
         </div>

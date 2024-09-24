@@ -18,7 +18,7 @@ export function WalletConnectButton() {
   return (
     <Button
       onClick={handleClick}
-      className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 text-sm px-4 py-2 rounded-full font-syne"
+      className="bg-gray-900 hover:bg-gray-950 text-gray-50 text-sm px-4 py-2 rounded-md font-syne"
     >
       {connected ? (
         <span>
