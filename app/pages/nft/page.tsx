@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,17 +13,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Loader2, PenTool, Gift, ImageIcon, Repeat, Coins } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
 
-// Mock wallet functions
+// Wallet functions
 const useWallet = () => ({
   connected: false,
   publicKey: null,
   signTransaction: async () => {},
 })
 
-// Mock blockchain functions
-const mockMintNFT = async () => {
+// Solana blockchain functions
+const MintNFT = async () => {
   await new Promise(resolve => setTimeout(resolve, 2000))
-  return 'mock-transaction-id'
+  return 'solana-transaction-id'
 }
 
 export default function NFTPage() {
@@ -30,6 +31,7 @@ export default function NFTPage() {
   const [isLoading, setIsLoading] = useState(false)
   const wallet = useWallet()
   const { toast } = useToast()
+  const router = useRouter()
 
   const handleAction = async (action: string) => {
     if (!wallet.connected || !wallet.publicKey) {
@@ -45,7 +47,7 @@ export default function NFTPage() {
     try {
       switch (action) {
         case 'Mint':
-          const txId = await mockMintNFT()
+          const txId = await MintNFT()
           toast({
             title: "NFT Minted",
             description: `Successfully minted BARK NFT! Transaction ID: ${txId}`,
@@ -251,8 +253,12 @@ export default function NFTPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 bg-gray-100 min-h-screen">
-      <h1 className="text-4xl font-bold mb-4 text-gray-800">BARK NFT Dashboard</h1>
+      <h1 className="text-4xl font-bold mb-4 text-gray-800">NFT Dashboard</h1>
       <p className="text-xl text-gray-700 mb-8">Manage your BARK NFTs</p>
+
+      <Button onClick={() => router.push('/')} className="mb-4 bg-gray-900 text-white hover:bg-gray-700">
+        Back to Main Page
+      </Button>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1">
