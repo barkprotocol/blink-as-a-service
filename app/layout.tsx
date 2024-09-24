@@ -5,8 +5,8 @@ import { UserProvider } from '@/lib/auth';
 import { getUser } from '@/lib/db/queries';
 
 export const metadata: Metadata = {
-  title: 'Next.js SaaS Starter',
-  description: 'Get started quickly with Next.js, Postgres, and Stripe.',
+  title: 'BARK - Blink As A Service',
+  description: 'BARK BLINK is a powerful component of Blink BaaS (Blink As A Service) that streamlines interactions with blockchain assets, particularly within the Solana ecosystem',
 };
 
 export const viewport: Viewport = {

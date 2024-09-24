@@ -5,6 +5,8 @@ import {
   text,
   timestamp,
   integer,
+  boolean,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -68,15 +70,46 @@ export const invitations = pgTable('invitations', {
   status: varchar('status', { length: 20 }).notNull().default('pending'),
 });
 
+export const blinks = pgTable('blinks', {
+  id: serial('id').primaryKey(),
+  teamId: integer('team_id')
+    .notNull()
+    .references(() => teams.id),
+  creatorId: integer('creator_id')
+    .notNull()
+    .references(() => users.id),
+  type: varchar('type', { length: 50 }).notNull(),
+  status: varchar('status', { length: 50 }).notNull(),
+  data: jsonb('data').notNull(),
+  solanaSignature: varchar('solana_signature', { length: 88 }),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+export const apiKeys = pgTable('api_keys', {
+  id: serial('id').primaryKey(),
+  teamId: integer('team_id')
+    .notNull()
+    .references(() => teams.id),
+  key: varchar('key', { length: 255 }).notNull().unique(),
+  name: varchar('name', { length: 255 }).notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  lastUsedAt: timestamp('last_used_at'),
+  isActive: boolean('is_active').notNull().default(true),
+});
+
 export const teamsRelations = relations(teams, ({ many }) => ({
   teamMembers: many(teamMembers),
   activityLogs: many(activityLogs),
   invitations: many(invitations),
+  blinks: many(blinks),
+  apiKeys: many(apiKeys),
 }));
 
 export const usersRelations = relations(users, ({ many }) => ({
   teamMembers: many(teamMembers),
   invitationsSent: many(invitations),
+  blinksCreated: many(blinks),
 }));
 
 export const invitationsRelations = relations(invitations, ({ one }) => ({
@@ -112,6 +145,24 @@ export const activityLogsRelations = relations(activityLogs, ({ one }) => ({
   }),
 }));
 
+export const blinksRelations = relations(blinks, ({ one }) => ({
+  team: one(teams, {
+    fields: [blinks.teamId],
+    references: [teams.id],
+  }),
+  creator: one(users, {
+    fields: [blinks.creatorId],
+    references: [users.id],
+  }),
+}));
+
+export const apiKeysRelations = relations(apiKeys, ({ one }) => ({
+  team: one(teams, {
+    fields: [apiKeys.teamId],
+    references: [teams.id],
+  }),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Team = typeof teams.$inferSelect;
@@ -122,6 +173,10 @@ export type ActivityLog = typeof activityLogs.$inferSelect;
 export type NewActivityLog = typeof activityLogs.$inferInsert;
 export type Invitation = typeof invitations.$inferSelect;
 export type NewInvitation = typeof invitations.$inferInsert;
+export type Blink = typeof blinks.$inferSelect;
+export type NewBlink = typeof blinks.$inferInsert;
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type NewApiKey = typeof apiKeys.$inferInsert;
 export type TeamDataWithMembers = Team & {
   teamMembers: (TeamMember & {
     user: Pick<User, 'id' | 'name' | 'email'>;
@@ -139,4 +194,8 @@ export enum ActivityType {
   REMOVE_TEAM_MEMBER = 'REMOVE_TEAM_MEMBER',
   INVITE_TEAM_MEMBER = 'INVITE_TEAM_MEMBER',
   ACCEPT_INVITATION = 'ACCEPT_INVITATION',
+  CREATE_BLINK = 'CREATE_BLINK',
+  EXECUTE_BLINK = 'EXECUTE_BLINK',
+  CREATE_API_KEY = 'CREATE_API_KEY',
+  REVOKE_API_KEY = 'REVOKE_API_KEY',
 }

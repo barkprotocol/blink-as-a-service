@@ -12,10 +12,7 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { toast } from '@/components/ui/use-toast'
-import { stripe } from '@/lib/payments/stripe'
-import { db } from '@/lib/db/drizzle'
-import { users, teams, teamMembers } from '@/lib/db/schema'
-import { hashPassword } from '@/lib/auth/session'
+import { Loader2, RefreshCw } from 'lucide-react'
 
 // Initialize Solana connection (replace with your RPC URL)
 const connection = new Connection('https://api.mainnet-beta.solana.com')
@@ -46,6 +43,7 @@ export default function SolanaIntegration() {
   const [blinkType, setBlinkType] = useState<BlinkType>('transfer')
   const [blinkData, setBlinkData] = useState('')
   const [blinks, setBlinks] = useState<Blink[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     if (wallet.publicKey) {
@@ -85,6 +83,7 @@ export default function SolanaIntegration() {
       return
     }
 
+    setIsLoading(true)
     try {
       const recipientPublicKey = new PublicKey(recipient)
       const amountInLamports = parseFloat(amount) * LAMPORTS_PER_SOL
@@ -112,6 +111,8 @@ export default function SolanaIntegration() {
     } catch (error) {
       console.error('Solana Pay error:', error)
       toast({ title: 'Error', description: 'Failed to complete Solana Pay transaction.' })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -121,6 +122,7 @@ export default function SolanaIntegration() {
       return
     }
 
+    setIsLoading(true)
     try {
       const metaplex = Metaplex.make(connection)
         .use(walletAdapterIdentity(wallet))
@@ -145,6 +147,8 @@ export default function SolanaIntegration() {
     } catch (error) {
       console.error('NFT minting error:', error)
       toast({ title: 'Error', description: 'Failed to mint NFT.' })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -154,6 +158,7 @@ export default function SolanaIntegration() {
       return
     }
 
+    setIsLoading(true)
     try {
       const newBlink: Blink = {
         id: `blink_${Date.now()}`,
@@ -182,6 +187,8 @@ export default function SolanaIntegration() {
     } catch (error) {
       console.error('Blink creation error:', error)
       toast({ title: 'Error', description: 'Failed to create Blink.' })
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -197,5 +204,300 @@ export default function SolanaIntegration() {
       return
     }
 
+    setIsLoading(true)
     try {
-      // Simulate blink
+      // Simulate blink execution
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // Update blink status
+      setBlinks(prevBlinks => 
+        prevBlinks.map(b => 
+          b.id === blinkId ? { ...b, status: 'completed' } : b
+        )
+      )
+
+      toast({ title: 'Success', description: `Blink ${blinkId} executed successfully.` })
+    } catch (error) {
+      console.error('Blink execution error:', error)
+      toast({ title: 'Error', description: 'Failed to execute Blink.' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleUSDCTransfer = async () => {
+    if (!wallet.publicKey || !wallet.signTransaction) {
+      toast({ title: 'Error', description: 'Please connect your wallet first.' })
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const recipientPublicKey = new PublicKey(recipient)
+      const amountInUSDC = parseFloat(amount) * 1_000_000 // USDC has 6 decimal places
+
+      const senderUsdcAddress = await getAssociatedTokenAddress(USDC_MINT, wallet.publicKey)
+      const recipientUsdcAddress = await getAssociatedTokenAddress(USDC_MINT, recipientPublicKey)
+
+      const transaction = new Transaction()
+
+      // Check if the recipient has an associated token account, if not, create one
+      const recipientAccount = await connection.getAccountInfo(recipientUsdcAddress)
+      if (!recipientAccount) {
+        transaction.add(
+          createAssociatedTokenAccountInstruction(
+            wallet.publicKey,
+            recipientUsdcAddress,
+            recipientPublicKey,
+            USDC_MINT
+          )
+        )
+      }
+
+      // Add transfer instruction
+      transaction.add(
+        createTransferInstruction(
+          senderUsdcAddress,
+          recipientUsdcAddress,
+          wallet.publicKey,
+          amountInUSDC
+        )
+      )
+
+      // Sign and send the transaction
+      const signature = await wallet.sendTransaction(transaction, connection)
+      await connection.confirmTransaction(signature, 'confirmed')
+
+      toast({ title: 'Success', description: `USDC transfer completed. Signature: ${signature}` })
+      updateUSDCBalance()
+    } catch (error) {
+      console.error('USDC transfer error:', error)
+      toast({ title: 'Error', description: 'Failed to complete USDC transfer.' })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <div className="container mx-auto p-4 space-y-8">
+      <Card className="bg-card">
+        <CardHeader>
+          <CardTitle className="text-primary">Solana Wallet</CardTitle>
+          <CardDescription className="text-muted-foreground">Connect your Solana wallet and view your balance</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <WalletMultiButton className="mb-4 bg-primary text-primary-foreground hover:bg-primary/90" />
+          {wallet.publicKey && (
+            <div className="space-y-2">
+              <p className="text-foreground">SOL Balance: {balance !== null ? `${balance} SOL` : 'Loading...'}</p>
+              <p className="text-foreground">USDC Balance: {usdcBalance !== null ? `${usdcBalance} USDC` : 'Loading...'}</p>
+              <Button
+                onClick={() => { updateBalance(); updateUSDCBalance(); }}
+                className="bg-secondary text-secondary-foreground hover:bg-secondary/90"
+              >
+                <RefreshCw className="mr-2 h-4 w-4" /> Refresh Balances
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card className="bg-card">
+        <CardHeader>
+          <CardTitle className="text-primary">Solana Pay</CardTitle>
+          <CardDescription className="text-muted-foreground">Generate a Solana Pay QR code</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="recipient" className="text-foreground">Recipient Address</Label>
+            <Input
+              id="recipient"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              placeholder="Enter recipient's Solana address"
+              className="bg-input text-foreground"
+            />
+          </div>
+          <div>
+            <Label htmlFor="amount" className="text-foreground">Amount (SOL)</Label>
+            <Input
+              id="amount"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Enter amount in SOL"
+              className="bg-input text-foreground"
+            />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleSolanaPay} disabled={isLoading} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Generate QR Code
+          </Button>
+        </CardFooter>
+        {qrCode && (
+          <CardContent>
+            <img src={qrCode} alt="Solana Pay QR Code" className="mx-auto" />
+          </CardContent>
+        )}
+      </Card>
+
+      <Card className="bg-card">
+        <CardHeader>
+          <CardTitle className="text-primary">USDC Transfer</CardTitle>
+          <CardDescription className="text-muted-foreground">Transfer USDC to another address</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="usdcRecipient" className="text-foreground">Recipient Address</Label>
+            <Input
+              id="usdcRecipient"
+              value={recipient}
+              onChange={(e) => setRecipient(e.target.value)}
+              placeholder="Enter recipient's Solana address"
+              className="bg-input text-foreground"
+            />
+          </div>
+          <div>
+            <Label htmlFor="usdcAmount" className="text-foreground">Amount (USDC)</Label>
+            <Input
+              id="usdcAmount"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="Enter amount in USDC"
+              className="bg-input text-foreground"
+            />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleUSDCTransfer} disabled={isLoading} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Transfer USDC
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <Card className="bg-card">
+        <CardHeader>
+          <CardTitle className="text-primary">NFT Minting</CardTitle>
+          <CardDescription className="text-muted-foreground">Create a new NFT on Solana</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="nftName" className="text-foreground">NFT Name</Label>
+            <Input
+              id="nftName"
+              value={nftName}
+              onChange={(e) => setNftName(e.target.value)}
+              placeholder="Enter NFT name"
+              className="bg-input text-foreground"
+            />
+          </div>
+          <div>
+            <Label htmlFor="nftDescription" className="text-foreground">NFT Description</Label>
+            <Input
+              id="nftDescription"
+              value={nftDescription}
+              onChange={(e) => setNftDescription(e.target.value)}
+              placeholder="Enter NFT description"
+              className="bg-input text-foreground"
+            />
+          </div>
+          <div>
+            <Label htmlFor="nftImageUrl" className="text-foreground">NFT Image URL</Label>
+            <Input
+              id="nftImageUrl"
+              value={nftImageUrl}
+              onChange={(e) => setNftImageUrl(e.target.value)}
+              placeholder="Enter NFT image URL"
+              className="bg-input text-foreground"
+            />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleNftMint} disabled={isLoading} className="bg-primary text-primary-foreground hover:bg-primary/90">
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Mint NFT
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <Card className="bg-card">
+        <CardHeader>
+          <CardTitle className="text-primary">Blink Creation</CardTitle>
+          <CardDescription className="text-muted-foreground">Create a new Blink operation</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="blinkType" className="text-foreground">Blink Type</Label>
+            <select
+              id="blinkType"
+              value={blinkType}
+              onChange={(e) => setBlinkType(e.target.value as BlinkType)}
+              className="w-full p-2 border rounded bg-input text-foreground"
+            >
+              <option value="transfer">Transfer</option>
+              <option value="swap">Swap</option>
+              <option value="nft_mint">NFT Mint</option>
+            </select>
+          </div>
+          <div>
+            <Label htmlFor="blinkData" className="text-foreground">Blink Data (JSON)</Label>
+            <Input
+              id="blinkData"
+              value={blinkData}
+              onChange={(e) => setBlinkData(e.target.value)}
+              placeholder='Enter Blink data (e.g., {"amount": "1", "token": "SOL"})'
+              className="bg-input text-foreground"
+            />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button
+            onClick={() => handleBlinkCreation(blinkType, JSON.parse(blinkData))}
+            disabled={isLoading}
+            className="bg-primary text-primary-foreground hover:bg-primary/90"
+          >
+            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+            Create Blink
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <Card className="bg-card">
+        <CardHeader>
+          <CardTitle className="text-primary">Blink History</CardTitle>
+          <CardDescription className="text-muted-foreground">View and manage your Blinks</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {blinks.length === 0 ? (
+            <p className="text-muted-foreground">No Blinks created yet.</p>
+          ) : (
+            <ul className="space-y-4">
+              {blinks.map((blink) => (
+                <li key={blink.id} className="border p-4 rounded bg-secondary">
+                  <p className="text-foreground"><strong>ID:</strong> {blink.id}</p>
+                  <p className="text-foreground"><strong>Type:</strong> {blink.type}</p>
+                  <p className="text-foreground"><strong>Status:</strong> {blink.status}</p>
+                  <p className="text-foreground"><strong>Data:</strong> {JSON.stringify(blink.data)}</p>
+                  {blink.status === 'pending' && (
+                    <Button
+                      onClick={() => executeBlink(blink.id)}
+                      disabled={isLoading}
+                      className="mt-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                    >
+                      {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                      Execute Blink
+                    </Button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
