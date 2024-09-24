@@ -265,7 +265,7 @@ function Newsletter() {
     <section className="py-16 bg-[#D0BFB4]">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-6 font-syne">Stay Updated</h2>
-        <p className="text-center text-gray-700 mb-8 font-syne">Subscribe to our newsletter for the latest updates, features, and news about BARK BLINK.</p>
+        <p className="text-center text-gray-700 mb-8 font-poppins">Subscribe to our newsletter for the latest updates, features, and news about BARK BLINK.</p>
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 justify-center">
           <Input
             type="email"
@@ -291,7 +291,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center justify-center space-y-4">
           <div className="flex flex-col items-center space-y-2">
-            <p className="text-sm font-medium text-gray-700 font-syne">Follow us</p>
+            <p className="text-sm font-semibold text-gray-700 font-syne">Follow us</p>
             <div className="flex space-x-4">
               <Link href="https://twitter.com/bark_protocol" target="_blank" rel="noopener noreferrer" aria-label="Twitter">
                 <Twitter className="h-5 w-5 text-gray-400 hover:text-gray-600" />
@@ -311,11 +311,11 @@ function Footer() {
             </div>
           </div>
           <div className="flex space-x-4">
-            <Link href="/terms-of-use" className="text-sm text-gray-600 hover:text-gray-900 font-syne">
+            <Link href="/terms-of-use" className="text-sm text-gray-500 hover:text-gray-700 font-syne">
               Terms of Use
             </Link>
-            <span className="text-gray-400">|</span>
-            <Link href="/privacy-policy" className="text-sm text-gray-600 hover:text-gray-900 font-syne">
+            <span className="text-gray-300">|</span>
+            <Link href="/privacy-policy" className="text-sm text-gray-500 hover:text-gray-700 font-syne">
               Privacy Policy
             </Link>
           </div>
