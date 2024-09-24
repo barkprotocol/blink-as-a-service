@@ -17,7 +17,7 @@ export const BlinkList: React.FC<BlinkListProps> = ({ blinks }) => {
             <li key={index} className="bg-white shadow rounded-lg p-4">
               <div className="flex justify-between items-center">
                 <span className="font-semibold text-gray-900">{blink.id}</span>
-                <span className={`px-2 py-1 rounded-full text-sm ${blink.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                <span className={`px-2 py-1 rounded-md text-sm ${blink.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                   {blink.status}
                 </span>
               </div>

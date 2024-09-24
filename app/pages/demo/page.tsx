@@ -66,7 +66,7 @@ export default function DemoPage() {
             onClick={togglePlay}
             variant="ghost"
             size="icon"
-            className="w-20 h-20 text-white bg-gray-900 bg-opacity-50 hover:bg-opacity-75 transition-all duration-300 rounded-full"
+            className="w-20 h-20 text-white bg-gray-900 bg-opacity-50 hover:bg-opacity-75 transition-all duration-300 rounded-md"
           >
             {isPlaying ? (
               <PauseCircle className="w-12 h-12" />
@@ -129,7 +129,7 @@ export default function DemoPage() {
         <p className="text-gray-600 mb-8 font-syne">
           Join BARK BLINK today and start leveraging the power of seamless blockchain interactions for your projects and applications.
         </p>
-        <Button asChild className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 font-syne px-8 py-3 rounded-full text-lg">
+        <Button asChild className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 font-syne px-8 py-3 rounded-md text-lg">
           <a href="/sign-up">Get Started with BARK BLINK</a>
         </Button>
       </div>

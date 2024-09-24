@@ -21,7 +21,7 @@ const DynamicBlinkList = dynamic(() => import('@/components/blink/blink-list').t
 });
 
 const IconWrapper = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D0BFB4] text-gray-800 transition-transform hover:scale-110">
+  <div className="flex h-12 w-12 items-center justify-center rounded-md bg-[#D0BFB4] text-gray-800 transition-transform hover:scale-110">
     {children}
   </div>
 );
