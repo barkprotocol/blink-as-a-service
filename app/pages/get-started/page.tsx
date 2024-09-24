@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,34 +8,50 @@ import { ArrowRight, Wallet, Code, Zap, CheckCircle, AlertCircle } from 'lucide-
 import Image from 'next/image';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
+import { WalletConnectButton } from '@/components/ui/wallet-connect-button';
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toast } from '@/hooks/use-toast';
 
 // Mock function to simulate creating a blink
 const createBlink = async (type: string, amount: number, recipient: string) => {
-  // Simulating API call
   await new Promise(resolve => setTimeout(resolve, 1000));
   return {
     id: Math.random().toString(36).substr(2, 9),
-    url: `https://barkblink.com/blink/${Math.random().toString(36).substr(2, 9)}`,
+    url: `https://blink.barkprotocol.app/create/blink/${Math.random().toString(36).substr(2, 9)}`,
   };
 };
 
 export default function GetStartedPage() {
   const [activeStep, setActiveStep] = useState(0);
-  const { connected, publicKey, signTransaction } = useWallet();
+  const { connected, publicKey, signTransaction, sendTransaction } = useWallet();
   const [isCreatingBlink, setIsCreatingBlink] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
 
-  const handleConnectWallet = () => {
-    if (!connected) {
-      toast({
-        title: "Wallet Connection Required",
-        description: "Please connect your Solana wallet to proceed.",
-        variant: "destructive",
-      });
+  const connection = new Connection('https://api.devnet.solana.com');
+
+  const fetchBalance = useCallback(async () => {
+    if (publicKey) {
+      try {
+        const balance = await connection.getBalance(publicKey);
+        setBalance(balance / LAMPORTS_PER_SOL);
+      } catch (error) {
+        console.error('Error fetching balance:', error);
+        toast({
+          title: "Error Fetching Balance",
+          description: "Unable to fetch your wallet balance. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
-  };
+  }, [publicKey, connection]);
+
+  useEffect(() => {
+    if (connected && publicKey) {
+      fetchBalance();
+    } else {
+      setBalance(null);
+    }
+  }, [connected, publicKey, fetchBalance]);
 
   const handleCreateBlink = async () => {
     if (!connected || !publicKey || !signTransaction) {
@@ -56,6 +72,7 @@ export default function GetStartedPage() {
         variant: "default",
       });
     } catch (error) {
+      console.error('Error creating Blink:', error);
       toast({
         title: "Error Creating Blink",
         description: "An error occurred while creating your Blink. Please try again.",
@@ -63,6 +80,46 @@ export default function GetStartedPage() {
       });
     } finally {
       setIsCreatingBlink(false);
+    }
+  };
+
+  const handleSendTransaction = async () => {
+    if (!connected || !publicKey || !sendTransaction) {
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your Solana wallet to send a transaction.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: PublicKey.default,
+          lamports: LAMPORTS_PER_SOL * 0.01,
+        })
+      );
+
+      const signature = await sendTransaction(transaction, connection);
+      await connection.confirmTransaction(signature, 'confirmed');
+
+      toast({
+        title: "Transaction Sent",
+        description: `Transaction confirmed. Signature: ${signature}`,
+        variant: "default",
+      });
+
+      // Refresh balance after transaction
+      fetchBalance();
+    } catch (error) {
+      console.error('Error sending transaction:', error);
+      toast({
+        title: "Transaction Failed",
+        description: "An error occurred while sending the transaction. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -113,11 +170,24 @@ export default function GetStartedPage() {
             height={200}
             className="rounded-lg shadow-md"
           />
-          <WalletMultiButton className="!bg-[#D0BFB4] !hover:bg-[#C0AFA4] !text-gray-800 !font-syne" />
+          <div className="mt-4">
+            <WalletConnectButton />
+          </div>
           {connected && (
-            <p className="text-green-600 font-syne">
-              Wallet connected: {publicKey?.toBase58().slice(0, 4)}...{publicKey?.toBase58().slice(-4)}
-            </p>
+            <div className="mt-4 space-y-2">
+              <p className="text-green-600 font-syne">
+                Wallet connected: {publicKey?.toBase58().slice(0, 4)}...{publicKey?.toBase58().slice(-4)}
+              </p>
+              <p className="text-gray-600 font-syne">
+                Balance: {balance !== null ? `${balance.toFixed(4)} SOL` : 'Loading...'}
+              </p>
+              <Button
+                onClick={handleSendTransaction}
+                className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 font-syne"
+              >
+                Send Test Transaction (0.01 SOL)
+              </Button>
+            </div>
           )}
         </div>
       ),
@@ -210,16 +280,6 @@ console.log('Transaction signature:', result.signature);
       ),
     },
   ];
-
-  useEffect(() => {
-    if (connected) {
-      toast({
-        title: "Wallet Connected",
-        description: "Your Solana wallet is now connected to BARK BLINK.",
-        variant: "default",
-      });
-    }
-  }, [connected]);
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-4xl">
