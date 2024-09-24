@@ -291,7 +291,7 @@ export default function NFTGalleryPage() {
         </div>
       </AnimatePresence>
 
-      <Link href="/nft" passHref>
+      <Link href="/pages/nft" passHref>
         <Button className="mt-8 w-full bg-gray-900 text-white hover:bg-gray-700">
           Back to NFT Dashboard
         </Button>
