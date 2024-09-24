@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -12,13 +13,11 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Loader2, PenTool, Gift, ImageIcon, Repeat, Coins } from 'lucide-react'
 import { useToast } from "@/hooks/use-toast"
+import { useWallet } from '@solana/wallet-adapter-react'
+import { Connection, PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from '@solana/web3.js'
 
-// Wallet functions
-const useWallet = () => ({
-  connected: false,
-  publicKey: null,
-  signTransaction: async () => {},
-})
+const SOLANA_NETWORK = 'devnet'
+const SOLANA_RPC_URL = 'https://api.devnet.solana.com'
 
 // Solana blockchain functions
 const MintNFT = async () => {
@@ -26,7 +25,7 @@ const MintNFT = async () => {
   return 'solana-transaction-id'
 }
 
-export default function NFTPage() {
+export default function NFTDashboardPage() {
   const [activeTab, setActiveTab] = useState('mint')
   const [isLoading, setIsLoading] = useState(false)
   const wallet = useWallet()
@@ -45,6 +44,7 @@ export default function NFTPage() {
 
     setIsLoading(true)
     try {
+      const connection = new Connection(SOLANA_RPC_URL, 'confirmed')
       switch (action) {
         case 'Mint':
           const txId = await MintNFT()
@@ -160,10 +160,12 @@ export default function NFTPage() {
               </Card>
             ))}
           </div>
-          <Button onClick={() => handleAction('View Gallery')} disabled={isLoading} className="w-full bg-[#D0BFB4] text-gray-800 hover:bg-[#C0AFA4]">
-            {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ImageIcon className="mr-2 h-4 w-4" />}
-            View Full Gallery
-          </Button>
+          <Link href="pages/gallery" passHref>
+            <Button className="w-full bg-[#D0BFB4] text-gray-800 hover:bg-[#C0AFA4]">
+              <ImageIcon className="mr-2 h-4 w-4" />
+              View Full Gallery
+            </Button>
+          </Link>
         </div>
       ),
     },
@@ -256,9 +258,11 @@ export default function NFTPage() {
       <h1 className="text-4xl font-bold mb-4 text-gray-800">NFT Dashboard</h1>
       <p className="text-xl text-gray-700 mb-8">Manage your BARK NFTs</p>
 
-      <Button onClick={() => router.push('/')} className="mb-4 bg-gray-900 text-white hover:bg-gray-700">
-        Back to Main Page
-      </Button>
+      <Link href="/" passHref>
+        <Button className="mb-4 bg-gray-900 text-white hover:bg-gray-700">
+          Back to Main Page
+        </Button>
+      </Link>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-5 bg-white rounded-lg p-1">
