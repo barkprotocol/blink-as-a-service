@@ -117,7 +117,7 @@ export default function HomePage() {
              BARK BLINK is a cutting-edge blockchain platform that transforms the way you handle digital transactions. We empower businesses and individuals with lightning-fast, secure, and cost-effective blockchain solutions.
             </p>
             <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
-              <ActionButton href="/pages/services/get-started" icon={ArrowRight}>
+              <ActionButton href="/pages/get-started/" icon={ArrowRight}>
                 Get Started
               </ActionButton>
               <ActionButton href="/pages/demo/" icon={PlayCircle} variant="secondary">
