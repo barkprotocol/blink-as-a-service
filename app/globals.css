@@ -57,9 +57,8 @@
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
-}
 
-@layer base {
+  /* Global Styles */
   * {
     @apply border-border; /* Applies the border color */
   }
@@ -99,6 +98,14 @@
   p {
     @apply text-base sm:text-lg; /* Responsive paragraph text */
   }
+
+  a {
+    @apply text-primary hover:text-secondary transition duration-300; /* Link styles */
+  }
+
+  button {
+    @apply transition duration-200 ease-in-out; /* Button styles */
+  }
 }
 
 /* Custom utility classes for fonts */
@@ -108,4 +115,14 @@
 
 .font-poppins {
   font-family: var(--font-poppins);
+}
+
+/* Button styles */
+.btn-primary {
+  @apply bg-primary text-primary-foreground hover:bg-primary-foreground hover:text-primary transition duration-300;
+}
+
+/* Dark mode support for buttons */
+.dark .btn-primary {
+  @apply bg-primary-foreground text-primary hover:bg-primary hover:text-primary-foreground;
 }

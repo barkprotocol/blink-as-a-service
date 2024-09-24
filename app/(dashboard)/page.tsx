@@ -141,7 +141,7 @@ export default function HomePage() {
       </section>
 
       {/* Create Blink Process Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
+      <section className="w-full py-12 md:py-24 lg:py-32 bg.white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">
             Create Blink Process
