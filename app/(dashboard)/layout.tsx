@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { CircleIcon, Home, LogOut, Menu, LayoutDashboard, Twitter, Send, MessageCircle, Instagram, BookOpen, Plus, Minus } from 'lucide-react';
+import { Home, LogOut, Menu, Twitter, Send, MessageCircle, Instagram, BookOpen, Plus, Minus, PawPrint, Zap, Layers, Shield, Code, Coins, Clock } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +20,7 @@ import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
-
+import { Input } from '@/components/ui/input';
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 function BlinkingLogo() {
@@ -30,7 +30,6 @@ function BlinkingLogo() {
     const interval = setInterval(() => {
       setIsVisible((prev) => !prev);
     }, 1000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -45,7 +44,7 @@ function BlinkingLogo() {
       />
       <span className="text-xl text-gray-900 font-syne">
         <span className="font-semibold">BARK</span>{' '}
-        <span className={`font-medium transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-30'}`}>
+        <span className={`font-medium transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-50'}`}>
           BLINK
         </span>
       </span>
@@ -65,33 +64,23 @@ function Header() {
       router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
-      // Optionally, add error handling UI here
     }
   }
 
   return (
-    <header className="border-b border-gray-200 bg-white">
+    <header className="sticky top-0 z-50 border-b border-gray-200 bg-white shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center">
           <BlinkingLogo />
         </Link>
         <nav className="hidden md:flex items-center space-x-6">
-          <Link
-            href="/features"
-            className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne"
-          >
+          <Link href="/features" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
             Features
           </Link>
-          <Link
-            href="/pricing"
-            className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne"
-          >
+          <Link href="/pricing" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
             Pricing
           </Link>
-          <Link
-            href="/docs"
-            className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne"
-          >
+          <Link href="/docs" className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
             Docs
           </Link>
         </nav>
@@ -123,28 +112,16 @@ function Header() {
             </DropdownMenu>
           ) : (
             <>
-              <Button
-                asChild
-                variant="ghost"
-                className="hidden md:inline-flex font-syne"
-              >
+              <Button asChild variant="ghost" className="hidden md:inline-flex font-syne">
                 <Link href="/sign-in">Sign In</Link>
               </Button>
-              <Button
-                asChild
-                className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 text-sm px-4 py-2 rounded-full font-syne"
-              >
+              <Button asChild className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 text-sm px-4 py-2 rounded-full font-syne">
                 <Link href="/sign-up">Sign Up</Link>
               </Button>
               <WalletConnectButton />
             </>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
             <span className="sr-only">Toggle menu</span>
             <Menu className="h-6 w-6" />
           </Button>
@@ -152,27 +129,58 @@ function Header() {
       </div>
       {isMenuOpen && (
         <nav className="md:hidden px-4 py-2 bg-gray-50">
-          <Link
-            href="/features"
-            className="block py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne"
-          >
+          <Link href="/features" className="block py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
             Features
           </Link>
-          <Link
-            href="/pricing"
-            className="block py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne"
-          >
+          <Link href="/pricing" className="block py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
             Pricing
           </Link>
-          <Link
-            href="/docs"
-            className="block py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne"
-          >
+          <Link href="/docs" className="block py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne">
             Docs
           </Link>
         </nav>
       )}
     </header>
+  );
+}
+
+function About() {
+  return (
+    <section className="py-16 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-2 font-syne">
+          About BARK Blink?
+        </h2>
+        <p className="text-lg text-gray-600 text-center mb-12 font-syne">
+          Discover how BARK Blink transforms digital transactions through blockchain technology.
+        </p>
+        <div className="flex flex-col md:flex-row items-center justify-center md:justify-between">
+          <div className="md:w-1/2 mb-8 md:mb-0 flex justify-center">
+            <Image
+              src="https://ucarecdn.com/2138a07e-c7e0-4482-820e-105a49d39ede/donation_bark.png?height=400&width=400"
+              alt="About BARK BLINK"
+              width={400}
+              height={400}
+              className="rounded-lg shadow-lg"
+            />
+          </div>
+          <div className="md:w-1/2 md:pl-8">
+            <p className="text-lg text-gray-700 mb-4 font-syne text-center md:text-left">
+              BARK BLINK is a revolutionary blockchain platform designed to simplify and accelerate digital transactions. Our mission is to provide a seamless, secure, and efficient ecosystem for businesses and individuals to harness the power of blockchain technology.
+            </p>
+            <h3 className="text-xl font-bold text-gray-900 mb-4 font-syne text-center md:text-left">Key Benefits:</h3>
+            <ul className="space-y-2">
+              {["Simplified blockchain interactions", "Enhanced security and transparency", "Faster transaction speeds", "Reduced costs and fees"].map((benefit, index) => (
+                <li key={index} className="flex items-center">
+                  <PawPrint className="h-5 w-5 text-[#D0BFB4] mr-2" />
+                  <span className="text-gray-700 font-syne">{benefit}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -203,31 +211,106 @@ function FAQ() {
   ];
 
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="py-16 bg-gray-50">
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-3xl font-bold text-center text-gray-900 mb-8 font-syne">Frequently Asked Questions</h2>
-        <div className="space-y-4">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">Frequently Asked Questions</h2>
+        <div className="space-y-6">
           {faqData.map((faq, index) => (
-            <div key={index} className="border-b border-gray-200 pb-4">
+            <div key={index} className="border-b border-gray-200 pb-6">
               <button
                 className="flex justify-between items-center w-full text-left"
                 onClick={() => setOpenQuestion(openQuestion === index ? null : index)}
               >
                 <span className="text-lg font-medium text-gray-900 font-syne">{faq.question}</span>
                 {openQuestion === index ? (
-                  <Minus className="h-5 w-5 text-gray-500" />
+                  <Minus className="h-5 w-5 text-[#D0BFB4]" />
                 ) : (
-                  <Plus className="h-5 w-5 text-gray-500" />
+                  <Plus className="h-5 w-5 text-[#D0BFB4]" />
                 )}
               </button>
               {openQuestion === index && (
-                <p className="mt-2 text-gray-600 font-syne">{faq.answer}</p>
+                <p className="mt-4 text-gray-600 font-syne text-base">{faq.answer}</p>
               )}
             </div>
           ))}
         </div>
       </div>
     </section>
+  );
+}
+
+function Newsletter() {
+  const [email, setEmail] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Subscribed with email:', email);
+    setEmail('');
+  };
+
+  return (
+    <section className="py-16 bg-[#D0BFB4]">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">Stay Updated</h2>
+        <p className="text-center text-gray-700 mb-8 font-syne">Subscribe to our newsletter for the latest updates, features, and news about BARK BLINK.</p>
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Input
+            type="email"
+            placeholder="Enter your email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="flex-grow font-syne"
+            required
+          />
+          <Button type="submit" className="bg-gray-900 hover:bg-gray-800 text-white font-syne">
+            Subscribe
+          </Button>
+        </form>
+      </div>
+    </section>
+  );
+}
+
+function Footer() {
+  return (
+    <footer className="bg-white border-t border-gray-200 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center justify-center space-y-4">
+          <div className="flex flex-col items-center space-y-2">
+            <p className="text-sm font-medium text-gray-700 font-syne">Follow us</p>
+            <div className="flex space-x-4">
+              <Link href="https://twitter.com/bark_protocol" target="_blank" rel="noopener noreferrer">
+                <Twitter className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+              </Link>
+              <Link href="https://t.me/bark_protocol" target="_blank" rel="noopener noreferrer">
+                <Send className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+              </Link>
+              <Link href="https://discord.gg/barkprotocol" target="_blank" rel="noopener noreferrer">
+                <MessageCircle className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+              </Link>
+              <Link href="https://www.instagram.com/bark.protocol" target="_blank" rel="noopener noreferrer">
+                <Instagram className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+              </Link>
+              <Link href="https://medium.com/@barkprotocol" target="_blank" rel="noopener noreferrer">
+                <BookOpen className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+              </Link>
+            </div>
+          </div>
+          <div className="flex space-x-4">
+            <Link href="/terms-of-use" className="text-sm text-gray-600 hover:text-gray-900 font-syne">
+              Terms of Use
+            </Link>
+            <span className="text-gray-400">|</span>
+            <Link href="/privacy-policy" className="text-sm text-gray-600 hover:text-gray-900 font-syne">
+              Privacy Policy
+            </Link>
+          </div>
+          <p className="text-center text-sm text-gray-500 font-syne">
+            © {new Date().getFullYear()} BARK Protocol. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
   );
 }
 
@@ -246,46 +329,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Header />
             <main className="flex-grow">
               {children}
+              <About />
+              <FAQ />
+              <Newsletter />
             </main>
-            <FAQ />
-            <footer className="bg-white border-t border-gray-200 py-8">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex flex-col items-center justify-center space-y-4">
-                  <div className="flex flex-col items-center space-y-2">
-                    <p className="text-sm font-medium text-gray-700 font-syne">Follow us</p>
-                    <div className="flex space-x-4">
-                      <Link href="https://twitter.com/bark_protocol" target="_blank" rel="noopener noreferrer">
-                        <Twitter className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      </Link>
-                      <Link href="https://t.me/bark_protocol" target="_blank" rel="noopener noreferrer">
-                        <Send className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      </Link>
-                      <Link href="https://discord.gg/barkprotocol" target="_blank" rel="noopener noreferrer">
-                        <MessageCircle className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      </Link>
-                      <Link href="https://www.instagram.com/bark.protocol" target="_blank" rel="noopener noreferrer">
-                        <Instagram className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      </Link>
-                      <Link href="https://medium.com/@barkprotocol" target="_blank" rel="noopener noreferrer">
-                        <BookOpen className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      </Link>
-                    </div>
-                  </div>
-                  <div className="flex space-x-4">
-                    <Link href="/terms-of-use" className="text-sm text-gray-600 hover:text-gray-900 font-syne">
-                      Terms of Use
-                    </Link>
-                    <span className="text-gray-400">|</span>
-                    <Link href="/privacy-policy" className="text-sm text-gray-600 hover:text-gray-900 font-syne">
-                      Privacy Policy
-                    </Link>
-                  </div>
-                  <p className="text-center text-sm text-gray-500 font-syne">
-                    © {new Date().getFullYear()} BARK Protocol. All rights reserved.
-                  </p>
-                </div>
-              </div>
-            </footer>
+            <Footer />
           </div>
         </WalletModalProvider>
       </WalletProvider>

@@ -1,12 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Zap, Layers, Shield, Code, Coins, Clock, Users, Globe, Lock, CreditCard, Gift, Users as UsersIcon, Repeat, ArrowLeftRight, Workflow, PlusCircle, Cog, Send, PlayCircle } from 'lucide-react';
+import { ArrowRight, PlayCircle, PlusCircle, Cog, Shield, Send, Clock, CreditCard, Gift, Users, ShoppingCart, Speaker, Globe } from 'lucide-react';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { BlinkCreator, Blink } from '@/components/blink/blink-creator';
-import { BlinkList } from '@/components/blink/blink-list';
+import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
+import dynamic from 'next/dynamic';
+
+const DynamicBlinkCreator = dynamic(() => import('@/components/blink/blink-creator').then((mod) => mod.BlinkCreator), {
+  loading: () => <Skeleton className="h-[200px] w-full" />,
+  ssr: false,
+});
+
+const DynamicBlinkList = dynamic(() => import('@/components/blink/blink-list').then((mod) => mod.BlinkList), {
+  loading: () => <Skeleton className="h-[200px] w-full" />,
+  ssr: false,
+});
 
 const IconWrapper = ({ children }: { children: React.ReactNode }) => (
   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#D0BFB4] text-gray-800 transition-transform hover:scale-110">
@@ -14,197 +25,141 @@ const IconWrapper = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
+const FeatureCard = ({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description: string; }) => (
   <div className="flex flex-col items-center space-y-4 text-center p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
     <IconWrapper>
-      <Icon className="h-6 w-6" />
+      <Icon className="h-6 w-6" aria-hidden="true" />
     </IconWrapper>
     <h3 className="text-xl font-bold text-gray-900 font-syne">{title}</h3>
-    <p className="text-gray-600">{description}</p>
+    <p className="text-gray-600 font-syne">{description}</p>
   </div>
 );
 
-const UseCaseCard = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
-  <div className="flex flex-col items-start space-y-2 p-6 bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+const ProcessStep = ({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description: string; }) => (
+  <div className="flex flex-col items-center text-center">
     <IconWrapper>
-      <Icon className="h-6 w-6" />
+      <Icon className="h-6 w-6" aria-hidden="true" />
     </IconWrapper>
-    <h3 className="text-xl font-bold text-gray-900 font-syne">{title}</h3>
-    <p className="text-gray-600">{description}</p>
+    <h3 className="mt-4 text-xl font-bold text-gray-900 font-syne">{title}</h3>
+    <p className="mt-2 text-gray-600 font-syne">{description}</p>
   </div>
 );
 
-const ProcessStep = ({ icon: Icon, title, description }: { icon: React.ElementType, title: string, description: string }) => (
-  <div className="flex items-start space-x-4">
-    <IconWrapper>
-      <Icon className="h-6 w-6" />
-    </IconWrapper>
-    <div>
-      <h3 className="text-lg font-bold text-gray-900 font-syne">{title}</h3>
-      <p className="text-gray-600">{description}</p>
-    </div>
-  </div>
+const ActionButton = ({ href, children, isOutline }: { href: string; children: React.ReactNode; isOutline?: boolean; }) => (
+  <Link href={href}>
+    <Button className={`rounded-full px-8 py-3 text-lg font-syne w-full sm:w-auto transition-all duration-300 ${isOutline ? 'bg-white hover:bg-gray-100 text-gray-800' : 'bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800'}`}>
+      {children}
+      {isOutline ? <PlayCircle className="ml-2 h-5 w-5" aria-hidden="true" /> : <ArrowRight className="ml-2 h-5 w-5" aria-hidden="true" />}
+    </Button>
+  </Link>
 );
 
 export default function HomePage() {
-  const [blinks, setBlinks] = useState<Blink[]>([]);
+  const [blinks, setBlinks] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const { connected } = useWallet();
+  const { toast } = useToast();
 
-  const handleBlinkCreated = (newBlink: Blink) => {
+  useEffect(() => {
+    const fetchBlinks = async () => {
+      if (!connected) {
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const response = await fetch('/api/blinks');
+        const data = await response.json();
+        setBlinks(data);
+      } catch (error) {
+        console.error('Error fetching blinks:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch blinks. Please try again later.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchBlinks();
+  }, [connected, toast]);
+
+  const handleBlinkCreated = (newBlink: any) => {
     setBlinks((prevBlinks) => [...prevBlinks, newBlink]);
+    toast({
+      title: "Success",
+      description: "New Blink created successfully!",
+    });
   };
 
   return (
-    <main className="flex-1 bg-gray-50 font-sans">
+    <div className="flex-1 bg-gray-50 font-sans">
       {/* Hero Section */}
       <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
           <div className="flex flex-col items-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h1 className="text-4xl font-bold tracking-tighter text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-syne">
-                BARK Blink As A Service
-                <span className="block text-[#D0BFB4] mt-2">Streamline Your Blockchain Interactions</span>
-              </h1>
-              <p className="mx-auto max-w-[700px] text-gray-600 text-lg sm:text-xl md:text-2xl mt-6">
-                Empower your applications with seamless blockchain integration. BARK Blink offers a powerful suite of tools for efficient and secure blockchain transactions.
-              </p>
-            </div>
+            <h1 className="text-4xl font-bold tracking-tighter text-gray-900 sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-syne">
+              BARK Blink As A Service
+              <span className="block text-[#D0BFB4] mt-2">Streamline Your Blockchain Interactions</span>
+            </h1>
+            <p className="mx-auto max-w-[700px] text-gray-600 text-lg sm:text-xl md:text-2xl mt-6 font-syne">
+              Empower your applications with seamless blockchain integration. BARK Blink offers a powerful suite of tools for efficient and secure blockchain transactions.
+            </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/pages/get-started">
-                <Button className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 rounded-full px-8 py-3 text-lg font-syne w-full sm:w-auto transition-all duration-300 hover:shadow-lg">
-                  Get Started
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/pages/demo">
-                <Button variant="outline" className="rounded-full px-8 py-3 text-lg font-syne w-full sm:w-auto transition-all duration-300 hover:bg-gray-100">
-                  Watch Demo
-                  <PlayCircle className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+              <ActionButton href="/pages/get-started">
+                Get Started
+              </ActionButton>
+              <ActionButton href="/pages/demo" isOutline>
+                Watch Demo
+              </ActionButton>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Blink Creator Section */}
-      {connected && (
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-            <h2 className="text-3xl font-bold text-center text-gray-900 mb-12 font-syne">Create a Blink</h2>
-            <div className="max-w-md mx-auto">
-              <BlinkCreator onBlinkCreated={handleBlinkCreated} />
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Blink List Section */}
-      {connected && blinks.length > 0 && (
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-            <BlinkList blinks={blinks} />
-          </div>
-        </section>
-      )}
-
-      {/* Key Features Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
+      {/* Description Section */}
+      <section className="w-full py-12 md:py-20 lg:py-32 bg-gray-100">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">Key Features</h2>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <FeatureCard
-              icon={Zap}
-              title="Lightning-Fast Transactions"
-              description="Experience blazing-fast blockchain transactions with our optimized infrastructure."
-            />
-            <FeatureCard
-              icon={Layers}
-              title="Multi-Chain Support"
-              description="Seamlessly interact with multiple blockchain networks through a single, unified API."
-            />
-            <FeatureCard
-              icon={Shield}
-              title="Enhanced Security"
-              description="Benefit from our robust security measures to protect your transactions and data."
-            />
-            <FeatureCard
-              icon={Code}
-              title="Developer-Friendly SDKs"
-              description="Integrate blockchain functionality effortlessly with our comprehensive SDKs."
-            />
-            <FeatureCard
-              icon={Coins}
-              title="Multi-Currency Support"
-              description="Support for a wide range of cryptocurrencies and tokens across various chains."
-            />
-            <FeatureCard
-              icon={Clock}
-              title="Real-Time Monitoring"
-              description="Stay informed with real-time transaction monitoring and instant alerts."
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">How It Works</h2>
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <div className="flex flex-col items-center text-center">
-              <IconWrapper>
-                <Code className="h-6 w-6" />
-              </IconWrapper>
-              <h3 className="mt-4 text-xl font-bold text-gray-900 font-syne">1. Integrate</h3>
-              <p className="mt-2 text-gray-600">Easily integrate BARK Blink into your application using our SDKs and APIs.</p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <IconWrapper>
-                <Workflow className="h-6 w-6" />
-              </IconWrapper>
-              <h3 className="mt-4 text-xl font-bold text-gray-900 font-syne">2. Configure</h3>
-              <p className="mt-2 text-gray-600">Set up your desired blockchain interactions and customize parameters.</p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <IconWrapper>
-                <Zap className="h-6 w-6" />
-              </IconWrapper>
-              <h3 className="mt-4 text-xl font-bold text-gray-900 font-syne">3. Execute</h3>
-              <p className="mt-2 text-gray-600">Trigger blockchain actions seamlessly within your application flow.</p>
-            </div>
-          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-8 font-syne">
+            What is Solana Blink?
+          </h2>
+          <p className="text-lg text-gray-700 text-center mb-4 font-syne">
+            Solana Blink revolutionizes blockchain interactions by allowing users to engage seamlessly through simple URLs. Whether on social media or Discord, it opens up new opportunities for developers and enhances user experience across the Solana ecosystem.
+          </p>
         </div>
       </section>
 
       {/* Create Blink Process Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">Create Blink Process</h2>
-          <div className="space-y-8 max-w-3xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">
+            Create Blink Process
+          </h2>
+          <div className="grid gap-8 md:grid-cols-3 lg:grid-cols-5">
             <ProcessStep
               icon={PlusCircle}
-              title="1. Initialize Blink"
+              title="1. Initialize"
               description="Start by creating a new Blink instance, specifying the desired blockchain and action type."
             />
             <ProcessStep
               icon={Cog}
-              title="2. Configure Parameters"
+              title="2. Configure"
               description="Set the necessary parameters for your Blink, such as recipient address, amount, or smart contract interactions."
             />
             <ProcessStep
               icon={Shield}
-              title="3. Secure and Validate"
+              title="3. Secure"
               description="Our system automatically secures and validates the Blink to ensure compliance and prevent errors."
             />
             <ProcessStep
               icon={Send}
-              title="4. Execute Blink"
+              title="4. Execute"
               description="Trigger the execution of your Blink, which is then processed on the specified blockchain."
             />
             <ProcessStep
               icon={Clock}
-              title="5. Monitor and Confirm"
+              title="5. Monitor"
               description="Track the status of your Blink in real-time and receive confirmation upon successful execution."
             />
           </div>
@@ -212,97 +167,85 @@ export default function HomePage() {
       </section>
 
       {/* Use Cases Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
+      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">Solana Actions and Blinks Use Cases</h2>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">
+            Solana Actions and Blinks Use Cases
+          </h2>
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            <UseCaseCard
+            <FeatureCard
               icon={CreditCard}
               title="Micro-Payments"
               description="Enable seamless, low-cost micro-transactions for content creators, digital services, and more."
             />
-            <UseCaseCard
+            <FeatureCard
               icon={Gift}
               title="Donations"
               description="Facilitate instant, transparent donations for charitable organizations and individuals."
             />
-            <UseCaseCard
-              icon={UsersIcon}
+            <FeatureCard
+              icon={Users}
               title="Crowdfunding"
-              description="Launch and manage decentralized crowdfunding campaigns with real-time fund tracking."
+              description="Launch campaigns that enable users to support new projects and innovations."
             />
-            <UseCaseCard
-              icon={Repeat}
-              title="Token Swaps"
-              description="Provide instant, low-fee token swaps across multiple Solana-based assets."
+            <FeatureCard
+              icon={ShoppingCart}
+              title="E-Commerce"
+              description="Integrate blockchain payments into e-commerce platforms for improved transparency and security."
             />
-            <UseCaseCard
-              icon={ArrowLeftRight}
-              title="Cross-Chain Transactions"
-              description="Enable seamless transactions between Solana and other supported blockchain networks."
+            <FeatureCard
+              icon={Speaker}
+              title="Marketing Campaigns"
+              description="Leverage blinks for targeted marketing campaigns and audience engagement."
             />
-            <UseCaseCard
-              icon={Zap}
-              title="Instant Settlements"
-              description="Leverage Solana's speed for near-instantaneous settlement in various financial applications."
+            <FeatureCard
+              icon={Globe}
+              title="Global Access"
+              description="Expand access to blockchain-based services worldwide, regardless of geography."
             />
           </div>
         </div>
       </section>
 
-      {/* About Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">About BARK Blink</h2>
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="flex flex-col items-center text-center">
-              <IconWrapper>
-                <Users className="h-6 w-6" />
-              </IconWrapper>
-              <h3 className="mt-4 text-xl font-bold text-gray-900 font-syne">Community-Driven</h3>
-              <p className="mt-2 text-gray-600">A collaborative effort by blockchain enthusiasts and developers passionate about decentralization.</p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <IconWrapper>
-                <Globe className="h-6 w-6" />
-              </IconWrapper>
-              <h3 className="mt-4 text-xl font-bold text-gray-900 font-syne">Our Vision</h3>
-              <p className="mt-2 text-gray-600">To create an open, accessible platform that empowers developers to build innovative blockchain solutions.</p>
-            </div>
-            <div className="flex flex-col items-center text-center">
-              <IconWrapper>
-                <Lock className="h-6 w-6" />
-              </IconWrapper>
-              <h3 className="mt-4 text-xl font-bold text-gray-900 font-syne">Open Source</h3>
-              <p className="mt-2 text-gray-600">Committed to transparency and collaboration, with all code and development open to the community.</p>
-            </div>
+      {/* Blink Creator Section */}
+      {connected && (
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">
+              Create Your Blink
+            </h2>
+            {isLoading ? (
+              <div className="flex justify-center">
+                <Skeleton className="h-[200px] w-full max-w-md" />
+              </div>
+            ) : (
+              <div className="max-w-md mx-auto">
+                <DynamicBlinkCreator onBlinkCreated={handleBlinkCreated} />
+              </div>
+            )}
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
-      {/* CTA Section */}
-      <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-900 text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-          <div className="flex flex-col items-center justify-center space-y-4 text-center">
-            <div className="space-y-2">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter font-syne">
-                Ready to Revolutionize Your Blockchain Integration?
-              </h2>
-              <p className="max-w-[900px] text-gray-400 text-lg sm:text-xl md:text-2xl mt-4">
-                Join the growing community of developers and businesses leveraging BARK Blink to create cutting-edge blockchain applications.
-              </p>
-            </div>
-            <div className="mt-8">
-              <Link href="/signup">
-                <Button className="bg-[#D0BFB4] hover:bg-[#C0AFA4] text-gray-800 rounded-full px-8 py-3 text-lg font-syne transition-all duration-300 hover:shadow-lg">
-                  Sign Up Now
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
+      {/* Blink List Section */}
+      {connected && (
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-gray-100">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center text-gray-900 mb-12 font-syne">
+              Your Blinks
+            </h2>
+            {isLoading ? (
+              <div className="flex justify-center">
+                <Skeleton className="h-[200px] w-full" />
+              </div>
+            ) : blinks.length > 0 ? (
+              <DynamicBlinkList blinks={blinks} />
+            ) : (
+              <p className="text-center text-gray-600 font-syne">No blinks created yet. Start by creating a new Blink above!</p>
+            )}
           </div>
-        </div>
-      </section>
-    </main>
+        </section>
+      )}
+    </div>
   );
 }
