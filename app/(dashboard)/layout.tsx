@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { CircleIcon, Home, LogOut, Menu, LayoutDashboard, Twitter, Send, MessageCircle, Instagram, BookOpen } from 'lucide-react';
+import { CircleIcon, Home, LogOut, Menu, LayoutDashboard, Twitter, Send, MessageCircle, Instagram, BookOpen, Plus, Minus } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,18 +29,27 @@ function BlinkingLogo() {
   useEffect(() => {
     const interval = setInterval(() => {
       setIsVisible((prev) => !prev);
-    }, 3000);
+    }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <span className="ml-2 text-xl text-gray-900 font-syne">
-      <span className="font-semibold">BARK</span>{' '}
-      <span className={`font-medium transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-30'}`}>
-        BLINK
+    <div className="flex items-center">
+      <Image
+        src="https://ucarecdn.com/f242e5dc-8813-47b4-af80-6e6dd43945a9/barkicon.png"
+        alt="BARK BLINK Logo"
+        width={32}
+        height={32}
+        className="mr-2"
+      />
+      <span className="text-xl text-gray-900 font-syne">
+        <span className="font-semibold">BARK</span>{' '}
+        <span className={`font-medium transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-30'}`}>
+          BLINK
+        </span>
       </span>
-    </span>
+    </div>
   );
 }
 
@@ -63,18 +73,17 @@ function Header() {
     <header className="border-b border-gray-200 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center">
-          <LayoutDashboard className="h-6 w-6 text-[#D0BFB4]" />
           <BlinkingLogo />
         </Link>
         <nav className="hidden md:flex items-center space-x-6">
           <Link
-            href="/pages/features"
+            href="/features"
             className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne"
           >
             Features
           </Link>
           <Link
-            href="/pages/pricing"
+            href="/pricing"
             className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors font-syne"
           >
             Pricing
@@ -167,6 +176,61 @@ function Header() {
   );
 }
 
+function FAQ() {
+  const [openQuestion, setOpenQuestion] = useState<number | null>(null);
+
+  const faqData = [
+    {
+      question: "What is BARK BLINK?",
+      answer: "BARK BLINK is a blockchain-based service that allows for quick and secure transactions using the Solana network. It's designed to streamline blockchain interactions for various use cases such as donations, NFTs, crowdfunding, and payments."
+    },
+    {
+      question: "How do I get started with BARK BLINK?",
+      answer: "To get started, sign up for an account, connect your Solana wallet, and explore our features. You can then create your first BLINK for transactions or integrate our API into your application."
+    },
+    {
+      question: "Is BARK BLINK secure?",
+      answer: "Yes, BARK BLINK prioritizes security. We use industry-standard encryption and follow best practices for blockchain transactions. However, always exercise caution and follow good security practices when using any blockchain service."
+    },
+    {
+      question: "What are the fees for using BARK BLINK?",
+      answer: "BARK BLINK charges minimal fees for transactions. The exact fee structure can be found on our pricing page. Note that Solana network fees also apply to transactions."
+    },
+    {
+      question: "Can I use BARK BLINK for my business?",
+      answer: "Yes, BARK BLINK is designed for both individual and business use. We offer API integration and customizable solutions for businesses of all sizes."
+    }
+  ];
+
+  return (
+    <section className="py-12 bg-gray-50">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-bold text-center text-gray-900 mb-8 font-syne">Frequently Asked Questions</h2>
+        <div className="space-y-4">
+          {faqData.map((faq, index) => (
+            <div key={index} className="border-b border-gray-200 pb-4">
+              <button
+                className="flex justify-between items-center w-full text-left"
+                onClick={() => setOpenQuestion(openQuestion === index ? null : index)}
+              >
+                <span className="text-lg font-medium text-gray-900 font-syne">{faq.question}</span>
+                {openQuestion === index ? (
+                  <Minus className="h-5 w-5 text-gray-500" />
+                ) : (
+                  <Plus className="h-5 w-5 text-gray-500" />
+                )}
+              </button>
+              {openQuestion === index && (
+                <p className="mt-2 text-gray-600 font-syne">{faq.answer}</p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const endpoint = clusterApiUrl('devnet');
   const wallets = [
@@ -183,6 +247,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <main className="flex-grow">
               {children}
             </main>
+            <FAQ />
             <footer className="bg-white border-t border-gray-200 py-8">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col items-center justify-center space-y-4">
@@ -207,11 +272,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </div>
                   </div>
                   <div className="flex space-x-4">
-                    <Link href="/pages/terms-of-use" className="text-sm text-gray-600 hover:text-gray-900 font-syne">
+                    <Link href="/terms-of-use" className="text-sm text-gray-600 hover:text-gray-900 font-syne">
                       Terms of Use
                     </Link>
                     <span className="text-gray-400">|</span>
-                    <Link href="/pages/privacy-policy" className="text-sm text-gray-600 hover:text-gray-900 font-syne">
+                    <Link href="/privacy-policy" className="text-sm text-gray-600 hover:text-gray-900 font-syne">
                       Privacy Policy
                     </Link>
                   </div>
@@ -226,3 +291,4 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </WalletProvider>
     </ConnectionProvider>
   );
+}

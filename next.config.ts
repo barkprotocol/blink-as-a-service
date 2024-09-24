@@ -1,12 +1,14 @@
+import type { NextConfig } from 'next';
+
 /**
- * @type {import('next').NextConfig}
+ * @type {NextConfig}
  */
-const nextConfig = {
+const nextConfig: NextConfig = {
   experimental: {
     ppr: true,  // Parallel Rendering
   },
   images: {
-    domains: ['uploadcare.com', 'barkprotocol.app'],
+    domains: ['uploadcare.com', 'barkprotocol.app', 'ucarecdn.com'],
   },
   env: {
     API_URL: 'https://api.yourdomain.com',  // Custom API domain as an environment variable
