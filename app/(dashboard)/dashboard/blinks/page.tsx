@@ -9,18 +9,24 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Zap, Plus, ExternalLink, Trash2 } from 'lucide-react';
+import { Zap, Plus, ExternalLink, Trash2, Search, Filter } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { toast } from '@/components/ui/use-toast';
 
 // Mock data for Blinks
 const mockBlinks = [
   { id: 1, name: 'Donation Link', type: 'Payment', url: 'https://barkblink.com/blink/123', createdAt: '2023-06-01' },
   { id: 2, name: 'NFT Minting', type: 'NFT', url: 'https://barkblink.com/blink/456', createdAt: '2023-06-05' },
   { id: 3, name: 'Crowdfunding', type: 'Payment', url: 'https://barkblink.com/blink/789', createdAt: '2023-06-10' },
+  { id: 4, name: 'Token Swap', type: 'Token', url: 'https://barkblink.com/blink/101', createdAt: '2023-06-15' },
+  { id: 5, name: 'Staking Rewards', type: 'Token', url: 'https://barkblink.com/blink/202', createdAt: '2023-06-20' },
 ];
 
 export default function BlinkDashboardPage() {
   const [blinks, setBlinks] = useState(mockBlinks);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterType, setFilterType] = useState('All');
   const router = useRouter();
 
   const handleCreateBlink = (event: React.FormEvent<HTMLFormElement>) => {
@@ -35,11 +41,25 @@ export default function BlinkDashboardPage() {
     };
     setBlinks([...blinks, newBlink]);
     setIsCreateDialogOpen(false);
+    toast({
+      title: "Blink Created",
+      description: `Your new Blink "${newBlink.name}" has been created successfully.`,
+    });
   };
 
   const handleDeleteBlink = (id: number) => {
     setBlinks(blinks.filter(blink => blink.id !== id));
+    toast({
+      title: "Blink Deleted",
+      description: "The Blink has been deleted successfully.",
+      variant: "destructive",
+    });
   };
+
+  const filteredBlinks = blinks.filter(blink => 
+    blink.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+    (filterType === 'All' || blink.type === filterType)
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -104,6 +124,31 @@ export default function BlinkDashboardPage() {
           <CardDescription className="font-syne">Manage and monitor your Blinks</CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center space-x-2">
+              <Search className="text-gray-400" />
+              <Input
+                placeholder="Search Blinks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-64 font-syne"
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Filter className="text-gray-400" />
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="w-[180px] font-syne">
+                  <SelectValue placeholder="Filter by type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All" className="font-syne">All Types</SelectItem>
+                  <SelectItem value="Payment" className="font-syne">Payment</SelectItem>
+                  <SelectItem value="NFT" className="font-syne">NFT</SelectItem>
+                  <SelectItem value="Token" className="font-syne">Token</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
           <Table>
             <TableHeader>
               <TableRow>
@@ -114,10 +159,14 @@ export default function BlinkDashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {blinks.map((blink) => (
+              {filteredBlinks.map((blink) => (
                 <TableRow key={blink.id}>
                   <TableCell className="font-medium font-syne">{blink.name}</TableCell>
-                  <TableCell className="font-syne">{blink.type}</TableCell>
+                  <TableCell className="font-syne">
+                    <Badge variant="secondary" className="font-syne">
+                      {blink.type}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="font-syne">{blink.createdAt}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">

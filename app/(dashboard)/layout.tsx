@@ -23,6 +23,7 @@ import { clusterApiUrl } from '@solana/web3.js';
 import { Input } from '@/components/ui/input';
 import '@solana/wallet-adapter-react-ui/styles.css';
 
+
 function BlinkingLogo() {
   const [isVisible, setIsVisible] = useState(true);
 
