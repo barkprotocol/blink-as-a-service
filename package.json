@@ -64,7 +64,7 @@
     "framer-motion": "^11.5.6",
     "jose": "^5.9.2",
     "lucide-react": "^0.441.0",
-    "next": "15.0.0-canary.152",
+    "next": "15.4.8",
     "next-themes": "^0.3.0",
     "pg": "^8.13.0",
     "postcss": "^8.4.47",
